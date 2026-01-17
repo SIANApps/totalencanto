@@ -3,6 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { requireApiAuth } from "@/lib/require-api-auth";
 import { ProductUpdateSchema } from "@/lib/validators";
 
+function inferProvider(url: string | null | undefined) {
+  if (!url) return null;
+  if (url.startsWith("/uploads/")) return "local";
+  if (url.includes("cloudinary.com") || url.includes("res.cloudinary.com")) return "cloudinary";
+  return "remote";
+}
+
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const token = await requireApiAuth(req as NextRequest);
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -39,6 +46,19 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     },
     include: { category: true }
   });
+
+  if (updated.imageUrl) {
+    await prisma.productImage.upsert({
+      where: { productId_url: { productId: updated.id, url: updated.imageUrl } },
+      create: {
+        productId: updated.id,
+        url: updated.imageUrl,
+        provider: inferProvider(updated.imageUrl),
+        publicId: null
+      },
+      update: {}
+    });
+  }
 
   return NextResponse.json({ product: updated });
 }

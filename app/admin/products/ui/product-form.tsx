@@ -2,10 +2,19 @@
 
 import type { Category, Product } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 type Mode = "create" | "edit";
+
+type ProductImageRow = {
+  id: string;
+  productId: string;
+  url: string;
+  provider: string | null;
+  publicId: string | null;
+  createdAt: string;
+};
 
 function moneyToCents(v: string) {
   const normalized = v.replace(/[^\d,.-]/g, "").replace(".", "").replace(",", ".");
@@ -37,11 +46,52 @@ export default function ProductForm({
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl || "");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [images, setImages] = useState<ProductImageRow[]>([]);
+  const [loadingImages, setLoadingImages] = useState(false);
 
   const previewCategory = useMemo(
     () => categories.find((c) => c.id === categoryId)?.name || "—",
     [categories, categoryId]
   );
+
+  async function refreshImages() {
+    if (mode !== "edit" || !initial?.id) return;
+    setLoadingImages(true);
+    try {
+      const res = await fetch(`/api/products/${initial.id}/images`, { credentials: "include" });
+      const json = await res.json().catch(() => ({} as any));
+      if (!res.ok) throw new Error(json?.error || "Falha ao carregar galeria");
+      setImages(Array.isArray(json?.images) ? json.images : []);
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao carregar galeria.");
+    } finally {
+      setLoadingImages(false);
+    }
+  }
+
+  useEffect(() => {
+    if (mode === "edit" && initial?.id) void refreshImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, initial?.id]);
+
+  async function setMainImage(url: string) {
+    if (mode !== "edit" || !initial?.id) return;
+    if (!url) return;
+    const t = toast.loading("Definindo imagem principal...");
+    try {
+      const res = await fetch(`/api/products/${initial.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: url })
+      });
+      const json = await res.json().catch(() => ({} as any));
+      if (!res.ok) throw new Error(json?.error || "Falha ao definir principal");
+      setImageUrl(url);
+      toast.success("Imagem principal atualizada!", { id: t });
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao definir imagem principal.", { id: t });
+    }
+  }
 
   async function onUploadFile(file: File) {
     setUploading(true);
@@ -49,10 +99,12 @@ export default function ProductForm({
     try {
       const fd = new FormData();
       fd.set("file", file);
+      if (mode === "edit" && initial?.id) fd.set("productId", initial.id);
       const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error || "Falha no upload");
       setImageUrl(String(json.url || ""));
+      if (mode === "edit" && initial?.id) void refreshImages();
       toast.success("Imagem enviada!", { id: t });
     } catch (err: any) {
       toast.error(err?.message || "Erro ao enviar imagem.", { id: t });
@@ -208,9 +260,81 @@ export default function ProductForm({
               </label>
             </div>
             <p className="mt-1 text-xs text-neutral-500">
-              O upload salva em <code className="rounded bg-black/5 px-1">/public/uploads</code> e preenche a URL automaticamente.
+              O upload preenche a URL automaticamente (Cloudinary quando configurado; senão salva em{" "}
+              <code className="rounded bg-black/5 px-1">/public/uploads</code>).
             </p>
           </label>
+
+          {mode === "edit" ? (
+            <div className="md:col-span-2">
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div className="text-xs font-semibold text-neutral-700">Galeria do produto</div>
+                  <div className="mt-1 text-xs text-neutral-500">
+                    Clique em uma imagem para definir como <span className="font-semibold">principal</span>.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void refreshImages()}
+                  disabled={loadingImages}
+                  className="rounded-xl border border-black/10 bg-white/80 px-3 py-2 text-xs font-semibold text-neutral-800 hover:bg-black/5 disabled:opacity-70"
+                >
+                  {loadingImages ? "Atualizando..." : "Atualizar galeria"}
+                </button>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                {images.map((img) => {
+                  const isMain = !!imageUrl && img.url === imageUrl;
+                  return (
+                    <button
+                      key={img.id}
+                      type="button"
+                      onClick={() => void setMainImage(img.url)}
+                      disabled={loading || uploading}
+                      className={[
+                        "group relative overflow-hidden rounded-2xl border bg-white/80 text-left",
+                        isMain ? "border-roseGold-400 shadow-[0_0_0_4px_rgba(200,162,122,0.10)]" : "border-black/10"
+                      ].join(" ")}
+                      title={img.url}
+                    >
+                      <div className="aspect-[4/3] bg-neutral-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img.url} alt="" className="h-full w-full object-cover" />
+                      </div>
+                      <div className="p-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate text-[11px] font-semibold text-neutral-700">
+                            {img.provider || "imagem"}
+                          </span>
+                          {isMain ? (
+                            <span className="rounded-full bg-roseGold-100 px-2 py-1 text-[10px] font-semibold text-neutral-800">
+                              Principal
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-black/5 px-2 py-1 text-[10px] font-semibold text-neutral-700 opacity-0 group-hover:opacity-100">
+                              Definir
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+
+                {!loadingImages && !images.length && (
+                  <div className="sm:col-span-3 lg:col-span-4 rounded-2xl border border-black/10 bg-white/80 p-4 text-xs text-neutral-600">
+                    Nenhuma imagem ainda. Faça um upload acima para popular a galeria.
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="md:col-span-2 rounded-2xl border border-black/10 bg-white/80 p-4 text-xs text-neutral-600">
+              Salve o produto primeiro para habilitar a galeria (múltiplas imagens) e escolher a imagem principal.
+            </div>
+          )}
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">

@@ -45,5 +45,8 @@ As credenciais vêm do seed:
 
 ## Upload de imagem (observação)
 
-O exemplo salva **URL** em `Product.imageUrl`. Para upload real de arquivo, o ideal é integrar um storage (ex.: S3/Cloudinary) e salvar a URL resultante.
+O projeto salva **URL** em `Product.imageUrl`.
+
+- Em produção, o endpoint `POST /api/upload` está preparado para subir a imagem no **Cloudinary** quando `CLOUDINARY_URL` estiver configurado.
+- Em desenvolvimento (ou sem `CLOUDINARY_URL`), ele faz fallback para salvar localmente em `public/uploads` e retorna `/uploads/...`.
 
