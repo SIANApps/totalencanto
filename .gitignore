@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Production build artifacts
+dist/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data / PIDs
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS / Editor
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Env files (never commit secrets)
+.env
+.env.*
+!.env.example
+!.env.example.*
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# Package managers
+.pnpm-store/
+
+# Prisma (local dev DB)
+prisma/dev.db
+prisma/dev.db-journal
+
+# Uploads (geralmente gerados em runtime; remova esta regra se quiser versionar uploads)
+public/uploads/
+

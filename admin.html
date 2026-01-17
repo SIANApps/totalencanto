@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7efe8" />
+    <meta name="description" content="Total Encanto — área administrativa do catálogo." />
+    <title>Total Encanto | Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&family=Playfair+Display:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="site-header" id="topo">
+      <div class="container header-inner">
+        <div class="brand" aria-label="Total Encanto">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="brand-text">
+            <div class="brand-name">Total <span>Encanto</span></div>
+            <div class="brand-sub">Área administrativa do catálogo</div>
+          </div>
+        </div>
+
+        <nav class="nav" aria-label="Ações">
+          <a href="./index.html">Ver catálogo</a>
+          <a href="#cadastro">Cadastrar</a>
+          <a href="#produtos">Produtos</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="admin">
+      <section class="admin-hero">
+        <div class="container admin-hero-inner">
+          <div>
+            <h1 class="admin-title">Gerenciar produtos</h1>
+            <p class="admin-lead">
+              Cadastre, edite e organize seus produtos. Tudo fica salvo no seu navegador (LocalStorage).
+              Se abrir em outro celular/computador, use <strong>Exportar/Importar</strong>.
+            </p>
+          </div>
+          <div class="admin-actions">
+            <button class="btn btn-ghost" id="btnExportar" type="button">Exportar (JSON)</button>
+            <label class="btn btn-ghost" for="importFile" role="button" tabindex="0">
+              Importar (JSON)
+            </label>
+            <input id="importFile" class="sr-only" type="file" accept="application/json" />
+            <button class="btn btn-primary" id="btnReset" type="button">Resetar para exemplo</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="container admin-grid">
+        <section class="panel" id="cadastro" aria-label="Cadastro de produto">
+          <div class="panel-head">
+            <h2 class="panel-title">Cadastro</h2>
+            <p class="panel-sub">Preencha e clique em salvar.</p>
+          </div>
+
+          <form id="formProduto" class="form" autocomplete="off">
+            <input type="hidden" id="produtoId" value="" />
+
+            <div class="form-grid">
+              <label class="field">
+                <span class="field-label">Categoria</span>
+                <select id="categoria" required>
+                  <option value="academia">Roupas de Academia</option>
+                  <option value="praia">Moda Praia</option>
+                  <option value="lingerie">Lingerie</option>
+                  <option value="sexshop">Sex Shop</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span class="field-label">Nome do produto</span>
+                <input id="nome" type="text" placeholder="Ex.: Conjunto Fitness Nude Glow" required />
+              </label>
+
+              <label class="field field-full">
+                <span class="field-label">Descrição</span>
+                <textarea
+                  id="desc"
+                  rows="3"
+                  placeholder="Breve descrição (conforto, tecido, diferencial...)"
+                  required
+                ></textarea>
+              </label>
+
+              <label class="field">
+                <span class="field-label">Tag (opcional)</span>
+                <input id="tag" type="text" placeholder="Ex.: Premium / Novidade / Modelador" />
+              </label>
+
+              <label class="field">
+                <span class="field-label">Imagem por URL (opcional)</span>
+                <input id="imgUrl" type="url" placeholder="https://..." />
+              </label>
+
+              <label class="field field-full">
+                <span class="field-label">Ou enviar imagem (opcional)</span>
+                <input id="imgFile" type="file" accept="image/*" />
+                <small class="hint">
+                  Dica: URL é melhor para não lotar o armazenamento do navegador. Upload vira “base64”.
+                </small>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit" id="btnSalvar">Salvar produto</button>
+              <button class="btn btn-ghost" type="button" id="btnCancelar">Cancelar edição</button>
+            </div>
+
+            <div class="preview" aria-label="Prévia do produto">
+              <div class="preview-thumb" id="previewThumb" aria-hidden="true"></div>
+              <div class="preview-meta">
+                <div class="preview-name" id="previewName">Prévia do nome</div>
+                <div class="preview-desc" id="previewDesc">Prévia da descrição</div>
+              </div>
+            </div>
+
+            <p class="note">
+              Depois de salvar, volte ao catálogo em <a href="./index.html"><strong>Ver catálogo</strong></a>.
+            </p>
+          </form>
+        </section>
+
+        <section class="panel" id="produtos" aria-label="Lista de produtos">
+          <div class="panel-head">
+            <h2 class="panel-title">Produtos cadastrados</h2>
+            <p class="panel-sub">Editar, remover e reorganizar por categoria.</p>
+          </div>
+
+          <div class="filters">
+            <label class="field">
+              <span class="field-label">Filtrar por categoria</span>
+              <select id="filtroCategoria">
+                <option value="todas">Todas</option>
+                <option value="academia">Roupas de Academia</option>
+                <option value="praia">Moda Praia</option>
+                <option value="lingerie">Lingerie</option>
+                <option value="sexshop">Sex Shop</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="listaProdutos" class="admin-list" role="list"></div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-inner">
+        <p>© Total Encanto – Beleza, atitude e poder feminino.</p>
+        <a class="to-top" href="#topo">Voltar ao topo</a>
+      </div>
+    </footer>
+
+    <script src="./admin.js" defer></script>
+  </body>
+</html>
+
