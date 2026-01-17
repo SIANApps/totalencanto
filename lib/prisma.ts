@@ -1,7 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 
 function ensureDatabaseUrl() {
-  if (process.env.DATABASE_URL) return;
+  const existing = process.env.DATABASE_URL;
+  const existingLooksValid =
+    typeof existing === "string" &&
+    (existing.startsWith("postgresql://") || existing.startsWith("postgres://"));
+  if (existingLooksValid) return;
 
   const host = process.env.DATABASE_HOST;
   const user = process.env.DATABASE_USER;
