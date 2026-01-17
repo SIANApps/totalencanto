@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import ProductForm from "../ui/product-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditProductPage({ params }: { params: { id: string } }) {
   const [product, categories] = await Promise.all([
     prisma.product.findUnique({ where: { id: params.id } }),

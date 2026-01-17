@@ -9,9 +9,9 @@ Painel administrativo fullstack para gerenciamento de produtos.
 - `prisma/`: schema e seed
 - `env.example.txt`: exemplo de variáveis de ambiente
 
-## Setup (SQLite)
+## Setup (PostgreSQL)
 
-1. Crie um arquivo `.env` baseado em `env.example.txt`
+1. Configure `DATABASE_URL` (Postgres) com base em `env.example.txt`
 2. Instale dependências:
 
 ```bash
@@ -29,6 +29,11 @@ npm run db:seed
 
 ```bash
 npm run dev
+
+## Deploy (Heroku/Koyeb/etc)
+
+- **Não commite `.env`**. Em produção, defina `DATABASE_URL` nas variáveis de ambiente do provedor.
+- Para Postgres gerenciado, geralmente é necessário `?sslmode=require` na `DATABASE_URL`.
 ```
 
 ## Login

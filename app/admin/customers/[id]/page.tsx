@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import CustomerForm from "../ui/customer-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditCustomerPage({ params }: { params: { id: string } }) {
   const customer = await prisma.customer.findUnique({ where: { id: params.id } });
   if (!customer) return notFound();
